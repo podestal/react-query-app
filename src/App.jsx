@@ -1,15 +1,24 @@
 import { useState, useEffect } from "react"
-import { useQuery, useMutation } from "@tanstack/react-query"
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query"
 import axios from "axios"
 
-const fetchPosts = async () => {
-  const response = await axios.get("https://jsonplaceholder.typicode.com/posts?_limit=10&_page=0")
+const MAX_POST_PAGE = 10
+
+const fetchPosts = async (pageNum) => {
+  const response = await axios.get(`https://jsonplaceholder.typicode.com/posts?_limit=10&_page=${pageNum}`)
   return response.data
 }
 
 const fetchComments = async (postId) => {
   const response = await axios.get(`https://jsonplaceholder.typicode.com/comments?postId=${postId}`)
   return response.data
+}
+
+const deletePost = (postId) => {
+  axios.delete(`https://jsonplaceholder.typicode.com/posts/${postId}`)
+  .then(res => console.log(res.data))
+  .catch(err => console.log(err))
+
 }
 
 const PostDetail = (props) => {
@@ -19,13 +28,18 @@ const PostDetail = (props) => {
     queryFn: () => fetchComments(props.postDetail.id)
   })
 
-  console.log(comments)
+  const deleteMutation = useMutation({
+    mutationFn: (postId) => deletePost(postId)  
+  })
 
   return (
     <div>
       <br />
       <h3>{props.postDetail.title}</h3>
-      <button>Delete</button>
+      <button onClick={() => deleteMutation.mutate(props.postDetail.id)}>Delete</button>
+      {deleteMutation.isError && <p>Error deleting the post</p>}
+      {deleteMutation.isLoading && <p>Deleting the post ...</p>}
+      {deleteMutation.isSuccess && <p>Post has (not) ben deleted</p>}
       <button>Udpate Title</button>
       <p>{props.postDetail.body}</p>
       <h4>Comments</h4>
@@ -36,14 +50,28 @@ const PostDetail = (props) => {
 
 const App = () => {
 
+  const [currentPage, setCurrentPage] = useState(1)
   const [postDetail, setPostDetail] = useState("")
 
-  const {data, isLoading, isError, error} = useQuery({
-    queryKey: ["posts"],
-    queryFn: fetchPosts,
-    staleTime: 5000,
-  })
+  const queryClient = useQueryClient()
 
+  // prefetch next page
+  useEffect(() => {
+    if (currentPage < MAX_POST_PAGE) {
+      const nextPage = currentPage + 1
+      queryClient.prefetchQuery({
+        queryKey: ["posts", nextPage],
+        queryFn: () => fetchPosts(nextPage)
+      })
+    }
+  }, [currentPage, queryClient])
+
+  const {data, isLoading, isError, error} = useQuery({
+    queryKey: ["posts", currentPage],
+    queryFn: () => fetchPosts(currentPage),
+    staleTime: 5000,
+    
+  })
 
   if (isLoading) return <h2>Loading ...</h2>
   if (isError) return <><h2>Something Went Wrong</h2><p>{error.toString()}</p></>
@@ -60,6 +88,9 @@ const App = () => {
         <PostDetail 
           postDetail={postDetail}
         />}
+        <button disabled={currentPage <= 1} onClick={() => setCurrentPage((prev) => prev - 1)}>Prev</button>
+        <span>Page {currentPage}</span>
+        <button disabled={currentPage >= MAX_POST_PAGE}onClick={() => setCurrentPage((prev) => prev + 1)}>Next</button>
     </div>
   )
 }

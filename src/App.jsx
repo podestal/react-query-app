@@ -1,28 +1,49 @@
+import { useState, useEffect } from "react"
 import { useQuery, useMutation } from "@tanstack/react-query"
+import axios from "axios"
 
-const POSTS =[
-  { id: 1, title: "Post 1"},
-  { id: 2, title: "Post 2"}
-]
+const fetchPosts = async () => {
+  const response = await axios.get("http://127.0.0.1:8000/api/cabins/")
+  return response.data
+}
 
-const wait = (duration) => {
-  return new Promise(resolve => setTimeout(resolve, duration))
+const PostDetail = (props) => {
+  return (
+    <div>
+      <h3>Id: {props.postDetail.id}</h3>
+      <p>Created at: {props.postDetail.creted_at}</p>
+      <p>Name: {props.name}</p>
+    </div>
+  )
 }
 
 const App = () => {
 
-  const postsQuery = useQuery({
+  const [postDetail, setPostDetail] = useState("")
+
+  const {data, isLoading, isError, error} = useQuery({
     queryKey: ["posts"],
-    queryFn: () => wait(1000).then(() => [...POSTS])
+    queryFn: fetchPosts,
+    staleTime: 5000,
   })
 
-  if (postsQuery.isLoading) return <h1>Loading ...</h1>
-  if (postsQuery.error) return <pre>{JSON.stringify(postsQuery.error)}</pre>
+
+  if (isLoading) return <h2>Loading ...</h2>
+  if (isError) return <><h2>Something Went Wrong</h2><p>{error.toString()}</p></>
   return (
-    <>
-      <h1>React Query</h1>
-      {postsQuery.data.map(post => <p key={post.id}>{post.title}</p>)}
-    </>
+    <div>
+      <h1>Tanstack Query</h1>
+      {data.map(post => (
+        <p
+          onClick={() => setPostDetail(post)} 
+          key={post.id}
+        >{post.name}</p>
+      ))}
+      {postDetail && 
+        <PostDetail 
+          postDetail={postDetail}
+        />}
+    </div>
   )
 }
 

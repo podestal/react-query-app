@@ -3,16 +3,33 @@ import { useQuery, useMutation } from "@tanstack/react-query"
 import axios from "axios"
 
 const fetchPosts = async () => {
-  const response = await axios.get("http://127.0.0.1:8000/api/cabins/")
+  const response = await axios.get("https://jsonplaceholder.typicode.com/posts?_limit=10&_page=0")
+  return response.data
+}
+
+const fetchComments = async (postId) => {
+  const response = await axios.get(`https://jsonplaceholder.typicode.com/comments?postId=${postId}`)
   return response.data
 }
 
 const PostDetail = (props) => {
+
+  const {data: comments} = useQuery({
+    queryKey: ["comments", props.postDetail.id],
+    queryFn: () => fetchComments(props.postDetail.id)
+  })
+
+  console.log(comments)
+
   return (
     <div>
-      <h3>Id: {props.postDetail.id}</h3>
-      <p>Created at: {props.postDetail.creted_at}</p>
-      <p>Name: {props.name}</p>
+      <br />
+      <h3>{props.postDetail.title}</h3>
+      <button>Delete</button>
+      <button>Udpate Title</button>
+      <p>{props.postDetail.body}</p>
+      <h4>Comments</h4>
+      {comments && comments.map(comment => <p key={comment.id}>{comment.name}</p>)}
     </div>
   )
 }
@@ -37,7 +54,7 @@ const App = () => {
         <p
           onClick={() => setPostDetail(post)} 
           key={post.id}
-        >{post.name}</p>
+        >{post.title}</p>
       ))}
       {postDetail && 
         <PostDetail 

@@ -1,12 +1,10 @@
-import PostsApp from "./app/PostsApp"
-import StarWarsApp from "./app/StarWarsApp"
+import TodosApp from "./app/TodosApp"
 
 const App = () => {
 
   return (
     <div>
-      {/* <PostsApp /> */}
-      <StarWarsApp />
+      <TodosApp />
     </div>
   )
 

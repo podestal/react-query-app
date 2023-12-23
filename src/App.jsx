@@ -18,7 +18,12 @@ const deletePost = (postId) => {
   axios.delete(`https://jsonplaceholder.typicode.com/posts/${postId}`)
   .then(res => console.log(res.data))
   .catch(err => console.log(err))
+}
 
+const updatePost = (postId) => {
+  axios.put(`https://jsonplaceholder.typicode.com/posts/${postId}`)
+  .then(res => console.log(res.data))
+  .catch(err => console.log(err))
 }
 
 const PostDetail = (props) => {
@@ -32,6 +37,10 @@ const PostDetail = (props) => {
     mutationFn: (postId) => deletePost(postId)  
   })
 
+  const updateMutation = useMutation({
+    mutationFn: (postId) => updatePost(postId)
+  })
+
   return (
     <div>
       <br />
@@ -40,7 +49,7 @@ const PostDetail = (props) => {
       {deleteMutation.isError && <p>Error deleting the post</p>}
       {deleteMutation.isLoading && <p>Deleting the post ...</p>}
       {deleteMutation.isSuccess && <p>Post has (not) ben deleted</p>}
-      <button>Udpate Title</button>
+      <button onClick={() => updateMutation.mutate(props.postDetail.id)}>Udpate Title</button>
       <p>{props.postDetail.body}</p>
       <h4>Comments</h4>
       {comments && comments.map(comment => <p key={comment.id}>{comment.name}</p>)}

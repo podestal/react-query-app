@@ -1,6 +1,7 @@
 import { QueryClient, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
 import updateTodoRequest from "../api/updateTodoRequest"
+import deleteTodoRequest from "../api/deleteTodoRequest"
 
 const TodoItem = ({ todo }) => {
 
@@ -11,6 +12,11 @@ const TodoItem = ({ todo }) => {
         mutationFn: (todoObj) => updateTodoRequest(todoObj),
         onSuccess: () => queryClient.invalidateQueries({queryKey: ["todos"]})
     }) 
+
+    const deleteMutation = useMutation({
+        mutationFn: (id) => deleteTodoRequest(id),
+        onSuccess: () => queryClient.invalidateQueries({queryKey: ["todos"]})
+    })
 
     const handleSubmit = e => {
         e.preventDefault()
@@ -23,7 +29,7 @@ const TodoItem = ({ todo }) => {
                 <input type="text" value={text} onChange={e => setText(e.target.value)}/>
             </form>
             <input type="checkbox" checked={todo.completed} onChange={() => updateMutation.mutate({...todo, completed: !todo.completed})}/>
-            <button>Delete</button>
+            <button onClick={() => deleteMutation.mutate(todo.id)}>Delete</button>
         </div>
     )
 }

@@ -8,19 +8,19 @@ const TodoItem = ({ todo }) => {
     const queryClient = useQueryClient()
     const [text, setText] = useState(todo.text)
 
-    const updateMutation = useMutation({
+    const {mutate: updateMutation} = useMutation({
         mutationFn: (todoObj) => updateTodoRequest(todoObj),
         onSuccess: () => queryClient.invalidateQueries({queryKey: ["todos"]})
     }) 
 
-    const deleteMutation = useMutation({
+    const {mutate: deleteMutation} = useMutation({
         mutationFn: (id) => deleteTodoRequest(id),
         onSuccess: () => queryClient.invalidateQueries({queryKey: ["todos"]})
     })
 
     const handleSubmit = e => {
         e.preventDefault()
-        updateMutation.mutate({...todo, text})
+        updateMutation({...todo, text})
     }
 
     return (
@@ -28,8 +28,8 @@ const TodoItem = ({ todo }) => {
             <form onSubmit={handleSubmit}>
                 <input type="text" value={text} onChange={e => setText(e.target.value)}/>
             </form>
-            <input type="checkbox" checked={todo.completed} onChange={() => updateMutation.mutate({...todo, completed: !todo.completed})}/>
-            <button onClick={() => deleteMutation.mutate(todo.id)}>Delete</button>
+            <input type="checkbox" checked={todo.completed} onChange={() => updateMutation({...todo, completed: !todo.completed})}/>
+            <button onClick={() => deleteMutation(todo.id)}>Delete</button>
         </div>
     )
 }

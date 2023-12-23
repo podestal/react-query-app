@@ -1,10 +1,11 @@
 import TodosApp from "./app/TodosApp"
+import Register from "./components/Register"
 
 const App = () => {
 
   return (
     <div>
-      <TodosApp />
+      <Register />
     </div>
   )
 
